@@ -1,0 +1,20 @@
+/* This is the overlay for the device tree */
+/dts-v1/;
+/plugin/;
+
+/* Defines GPIO_ACTIVE_LOW */
+/* TODO: Check if path is correct */
+#include "/usr/src/linux-headers-6.6.31+rpt-common-rpi/include/dt-bindings/gpio/gpio.h"
+
+/ {
+    compatible = "brcm,bcm2712";
+    fragment@0 {
+        target-path = "/";
+        __overlay__ {
+            blink { /* Name of driver */
+                compatible = "emlogic,blink";
+                led-gpios = <&rp1-gpio 17 GPIO_ACTIVE_LOW>;
+            };
+        };
+    };
+};

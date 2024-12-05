@@ -14,20 +14,48 @@
  * We can override that file using something called a device tree overlay.
  */
 
+#include <linux/module.h>
+#include <linux/kernel.h>
 #include <linux/init.h>
+#include <linux/platform_device.h>
+#include <linux/gpio/consumer.h>
+
+/**
+ * We need access to a struct device in order to get a struct gpio_desc,
+ * because of this we will use a platform driver
+ */
+static int dt_probe(struct platform_device* pdev);
+static void dt_remove(struct platform_device* pdev);
+
+static const struct of_device_id device_dt_ids[] = {
+    { .compativle = "mgagos,blink" },
+    { }
+};
+MODULE_DEVICE_TABLE(of, device_dt_ids);
+
+static struct platform_driver pd {
+    .probe = dt_probe,
+    .remove = dt_remove,
+    .driver = {
+        .name = "blink",
+        .of_match_table = of_match_ptr(device_dt_ids),
+    },
+};
+
+static int dt_probe(struct platform_device* pdev)
+{
+    struct device* dev = &pdev->dev;
+    struct gpio_desc* led = gpiod_get(dev, "led", GPIOD_OUT_HIGH);
+
+    printk(KERN_INFO "Current led gpio state is: %d\n", gpiod_get_value(led));
+}
+
+static void dt_remove(struct platform_device* pdev)
+{
+    printk(KERN_INFO "Device: Remove was called\n");
+}
+
+module_platform_driver(pd);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Michal Gagos");
-
-static int __init gpio_module_init(void)
-{
-
-}
-
-static void __exit gpio_module_exit(void)
-{
-
-}
-
-module_init(gpio_module_init);
-module_exit(gpio_module_exit);

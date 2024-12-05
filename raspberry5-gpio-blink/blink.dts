@@ -12,7 +12,7 @@
         target-path = "/";
         __overlay__ {
             blink { /* Name of driver */
-                compatible = "emlogic,blink";
+                compatible = "mgagos,blink";
                 led-gpios = <&rp1-gpio 17 GPIO_ACTIVE_LOW>;
             };
         };

@@ -1,34 +1,28 @@
-#include <linux/module.h>
-#include <linux/init.h>
+#include <linux/cdev.h>
+#include <linux/device.h>
+#include <linux/kernel.h>
 #include <linux/fs.h>
 
-static int major;   // Major device number
+#define DEV_NAME "char_device"
+#define MAX_DEV 2
 
-/**
- * fops functions
- */
-static ssize_t custom_read(struct file *file, char __user *user, size_t len, loff_t *o) {
-    printk("char_dev - Read was called\n");
-}
-
-/**
- * fops defines what the device does when certain actions are used on it
- */
-static struct file_operations fops = {
-    .read = custom_read,
+// Device data holder. Can be expanded with additional data.
+struct my_char_device_data {
+    struct cdev cdev;
 };
+
+static int major = 0;                                       // Major device number
+static struct class *mychardev_class = NULL;                // Sysfs class
+static struct mychar_device_data mychardev_data[MAX_DEV];   // Array of data for each device
 
 static int __init char_device_init(void)
 {
-    // Allocate a device number
-    major = register_chrdev(0, "char_dev", &fops);
+    int err, i;
+    dev_t dev;
 
-    if (major < 0) {
-        printk("char_dev - Error registering chrdev\n");
-        return major;
-    }
+    err = alloc_chrdev_region(&dev, 0, MAX_DEV, DEV_NAME);
 
-    printk("char_dev - Registered at Major Device Number: %d\n", major);
+    dev_major = MAJOR(dev);
 
     return 0;
 }
@@ -38,13 +32,12 @@ static void __exit char_device_exit(void)
     unregister_chrdev(major, "char_dev");
 }
 
-module_init(char_device_init);
-module_exit(char_device_exit);
-
-
 /**
  * Metadata
  */
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Michal Gagos");
 MODULE_DESCRIPTION("A driver that registers a character device");
+
+module_init(char_device_init);
+module_exit(char_device_exit);
